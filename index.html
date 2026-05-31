@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Сантехнік Микола — Хмельницький</title>
+  <meta name="description" content="Сантехнік Микола у Хмельницькому — монтаж, ремонт, аварійний виїзд 24/7. Досвід 10 років, гарантія 12 місяців." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:          #0F2354;
+      --primary:       #1E3A8A;
+      --primary-mid:   #1D4ED8;
+      --primary-light: #3B82F6;
+      --accent:        #EA580C;
+      --accent-hover:  #C2410C;
+      --bg:            #F0F4FF;
+      --surface:       #FFFFFF;
+      --text:          #0F172A;
+      --text-mid:      #1E293B;
+      --muted:         #64748B;
+      --border:        #DBEAFE;
+      --border-light:  #EFF6FF;
+      --radius:        16px;
+      --radius-lg:     24px;
+      --shadow-sm:     0 2px 8px rgba(30,58,138,.08);
+      --shadow-md:     0 8px 28px rgba(30,58,138,.12);
+      --shadow-lg:     0 16px 48px rgba(30,58,138,.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+      color: var(--text);
+      line-height: 1.65;
+      background: var(--bg);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Lexend', sans-serif;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--navy), var(--primary-mid));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(30,58,138,.3);
+    }
+    .nav-logo-icon svg { width: 22px; height: 22px; }
+    .nav-logo-name {
+      font-family: 'Lexend', sans-serif;
+      font-size: .95rem; font-weight: 700;
+      color: var(--navy); line-height: 1.2;
+    }
+    .nav-logo-sub { font-size: .72rem; color: var(--muted); font-weight: 500; }
+
+    .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: var(--muted);
+      font-size: .875rem; font-weight: 600;
+      padding: 8px 14px; border-radius: 8px;
+      transition: color .2s, background .2s;
+    }
+    .nav-links a:hover { color: var(--primary); background: var(--border-light); }
+
+    .nav-cta {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--accent); color: #fff;
+      font-weight: 700; font-size: .875rem;
+      padding: 10px 22px; border-radius: 50px;
+      text-decoration: none;
+      transition: background .2s, transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(234,88,12,.35);
+      cursor: pointer;
+    }
+    .nav-cta svg { width: 16px; height: 16px; }
+    .nav-cta:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(234,88,12,.45); }
+
+    .nav-burger {
+      display: none; background: none; border: none;
+      cursor: pointer; color: var(--text);
+      padding: 8px; border-radius: 8px; transition: background .2s;
+    }
+    .nav-burger:hover { background: var(--border-light); }
+    .nav-burger svg { width: 24px; height: 24px; }
+
+    .nav-mobile {
+      display: none; position: fixed;
+      inset: 68px 0 0; background: rgba(255,255,255,.98);
+      backdrop-filter: blur(16px); z-index: 999;
+      flex-direction: column; padding: 20px 24px; gap: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a {
+      display: block; padding: 14px 16px;
+      font-size: 1rem; font-weight: 600;
+      color: var(--text-mid); text-decoration: none;
+      border-radius: 12px; transition: background .15s, color .15s;
+    }
+    .nav-mobile a:hover { background: var(--border-light); color: var(--primary); }
+    .nav-mobile-cta {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--accent) !important; color: #fff !important;
+      border-radius: 50px !important; margin-top: 12px;
+      box-shadow: 0 4px 14px rgba(234,88,12,.3);
+    }
+
+    /* ── HERO ── */
+    #hero {
+      background: linear-gradient(135deg, #091a42 0%, #1E3A8A 48%, #1D4ED8 100%);
+      color: #fff;
+      padding: 88px 0 108px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-orb-1 {
+      position: absolute; width: 640px; height: 640px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.3) 0%, transparent 68%);
+      top: -220px; right: -80px; pointer-events: none;
+    }
+    .hero-orb-2 {
+      position: absolute; width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(234,88,12,.18) 0%, transparent 68%);
+      bottom: -150px; left: 8%; pointer-events: none;
+    }
+    .hero-pattern {
+      position: absolute; inset: 0; pointer-events: none; opacity: .04;
+    }
+    .hero-pattern svg { width: 100%; height: 100%; }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 64px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50px; padding: 6px 16px 6px 10px;
+      font-size: .78rem; font-weight: 600; letter-spacing: .04em;
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    .badge-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #4ade80; flex-shrink: 0; position: relative;
+    }
+    .badge-dot::after {
+      content: ''; position: absolute; inset: -3px;
+      border-radius: 50%; background: rgba(74,222,128,.35);
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.6); opacity: 0; }
+    }
+
+    #hero h1 {
+      font-size: clamp(2.1rem, 4.2vw, 3.3rem);
+      font-weight: 800; letter-spacing: -.035em;
+      margin-bottom: 20px;
+    }
+    .h1-accent { color: #60A5FA; }
+
+    #hero p {
+      font-size: 1.05rem; opacity: .8;
+      max-width: 460px; line-height: 1.75; margin-bottom: 36px;
+    }
+
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .btn-orange {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--accent); color: #fff;
+      font-weight: 700; font-size: 1rem;
+      padding: 15px 32px; border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 6px 24px rgba(234,88,12,.45);
+      transition: all .22s;
+    }
+    .btn-orange svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .btn-orange:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 10px 32px rgba(234,88,12,.5); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: transparent; color: #fff;
+      font-weight: 600; font-size: 1rem;
+      padding: 14px 28px; border-radius: 50px;
+      text-decoration: none;
+      border: 1.5px solid rgba(255,255,255,.3);
+      transition: all .22s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+
+    /* Trust cards (hero right) */
+    .trust-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      margin-bottom: 14px;
+    }
+    .trust-card {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 16px; padding: 22px 18px;
+      backdrop-filter: blur(10px);
+      text-align: center;
+      transition: transform .25s, background .25s;
+    }
+    .trust-card:hover { transform: translateY(-5px); background: rgba(255,255,255,.16); }
+    .trust-num {
+      font-family: 'Lexend', sans-serif;
+      font-size: 2.1rem; font-weight: 800;
+      letter-spacing: -.04em; line-height: 1;
+      margin-bottom: 6px; color: #fff;
+    }
+    .trust-num em { color: #60A5FA; font-style: normal; }
+    .trust-card-label { font-size: .8rem; opacity: .68; font-weight: 500; line-height: 1.3; }
+
+    .trust-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .trust-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 50px; padding: 8px 16px;
+      font-size: .78rem; font-weight: 600;
+      flex: 1; min-width: 110px;
+    }
+    .trust-badge svg { width: 15px; height: 15px; color: #60A5FA; flex-shrink: 0; }
+
+    /* Hero wave */
+    .wave { display: block; width: 100%; line-height: 0; margin-top: -1px; overflow: hidden; }
+    .wave svg { display: block; width: 100%; }
+
+    /* ── STATS ── */
+    .stats-strip {
+      background: #fff;
+      padding: 52px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 0; max-width: 900px; margin: 0 auto;
+    }
+    .stat-item {
+      text-align: center; padding: 0 24px; position: relative;
+    }
+    .stat-item + .stat-item::before {
+      content: ''; position: absolute; left: 0; top: 15%;
+      height: 70%; width: 1px; background: var(--border);
+    }
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: var(--border-light);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary-mid); margin: 0 auto 12px;
+    }
+    .stat-icon svg { width: 22px; height: 22px; }
+    .stat-num {
+      font-family: 'Lexend', sans-serif;
+      font-size: 2.5rem; font-weight: 800;
+      color: var(--primary); line-height: 1;
+      letter-spacing: -.04em; display: block;
+    }
+    .stat-sfx { color: var(--accent); }
+    .stat-label {
+      font-size: .83rem; color: var(--muted);
+      font-weight: 500; margin-top: 6px; display: block;
+    }
+
+    /* ── SECTION COMMON ── */
+    section { padding: 88px 0; }
+
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: .75rem; font-weight: 700;
+      letter-spacing: .09em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 14px;
+    }
+    .section-label-line { width: 22px; height: 2px; background: var(--accent); border-radius: 2px; }
+
+    .section-title {
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      font-weight: 800; color: var(--navy);
+      margin-bottom: 12px; letter-spacing: -.025em;
+    }
+    .section-sub { font-size: 1rem; color: var(--muted); max-width: 520px; }
+    .section-head { margin-bottom: 52px; }
+
+    /* ── SERVICES ── */
+    #services { background: #fff; }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 20px;
+    }
+    .service-card {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 30px 24px;
+      position: relative; overflow: hidden;
+      transition: all .3s ease; cursor: default;
+    }
+    .service-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), #f97316);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .35s ease;
+    }
+    .service-card:hover { border-color: #bfdbfe; box-shadow: var(--shadow-md); transform: translateY(-5px); }
+    .service-card:hover::before { transform: scaleX(1); }
+
+    .svc-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; margin-bottom: 18px;
+      transition: transform .3s;
+      box-shadow: 0 4px 14px rgba(30,58,138,.25);
+    }
+    .svc-icon svg { width: 26px; height: 26px; }
+    .service-card:hover .svc-icon { transform: rotate(-6deg) scale(1.08); }
+    .service-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .service-card p { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── PROCESS ── */
+    #process { background: var(--bg); }
+
+    .process-track {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      position: relative;
+    }
+    .process-track::before {
+      content: ''; position: absolute;
+      top: 32px; left: calc(12.5% + 32px); right: calc(12.5% + 32px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary-mid) 0%, var(--accent) 100%);
+    }
+    .process-step { text-align: center; padding: 0 20px; position: relative; }
+    .step-circle {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: #fff; border: 3px solid var(--primary-mid);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 1.4rem; font-weight: 800; color: var(--primary-mid);
+      box-shadow: var(--shadow-sm);
+      transition: all .3s; position: relative; z-index: 1;
+    }
+    .process-step:hover .step-circle {
+      background: var(--primary-mid); color: #fff;
+      transform: scale(1.1); box-shadow: var(--shadow-md);
+    }
+    .process-step h4 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .process-step p { font-size: .84rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── WHY ── */
+    #why { background: #fff; }
+
+    .why-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+    .why-card {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      display: flex; gap: 20px; align-items: flex-start;
+      transition: all .25s;
+    }
+    .why-card:hover {
+      border-color: #93c5fd; box-shadow: var(--shadow-md);
+      background: #fff; transform: translateY(-3px);
+    }
+    .why-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--navy), var(--primary-mid));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 0 4px 14px rgba(30,58,138,.25);
+    }
+    .why-icon svg { width: 22px; height: 22px; }
+    .why-card h4 { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .why-card p { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── REVIEWS ── */
+    #reviews { background: var(--bg); }
+
+    .reviews-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .review-card {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      transition: all .25s;
+    }
+    .review-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: #bfdbfe; }
+    .review-stars { display: flex; gap: 3px; margin-bottom: 14px; }
+    .review-stars svg { width: 17px; height: 17px; fill: #F59E0B; color: #F59E0B; }
+    .review-text {
+      font-size: .9rem; color: var(--text-mid);
+      line-height: 1.72; margin-bottom: 18px; font-style: italic;
+    }
+    .review-author { display: flex; align-items: center; gap: 12px; }
+    .review-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Lexend', sans-serif;
+      font-weight: 700; font-size: .95rem; color: #fff; flex-shrink: 0;
+    }
+    .review-name { font-weight: 700; font-size: .9rem; color: var(--navy); }
+    .review-date { font-size: .78rem; color: var(--muted); }
+
+    /* ── CONTACT ── */
+    #contact { background: #fff; }
+
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+
+    .contact-card {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 36px 32px;
+    }
+    .contact-card h3 {
+      font-size: 1.3rem; font-weight: 800;
+      color: var(--navy); margin-bottom: 28px;
+    }
+    .contact-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .ci {
+      width: 48px; height: 48px; background: #fff;
+      border: 1.5px solid var(--border); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary-mid); flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+    .ci svg { width: 20px; height: 20px; }
+    .contact-row-lbl { font-size: .78rem; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+    .contact-row a, .contact-row strong {
+      font-weight: 700; color: var(--navy);
+      text-decoration: none; font-size: .97rem;
+      transition: color .2s;
+    }
+    .contact-row a:hover { color: var(--primary-mid); }
+
+    .cta-phone {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-top: 24px; background: var(--accent); color: #fff;
+      padding: 16px 32px; border-radius: 50px;
+      text-decoration: none; font-weight: 700;
+      font-size: 1rem; font-family: 'Lexend', sans-serif;
+      box-shadow: 0 6px 24px rgba(234,88,12,.4);
+      transition: all .22s;
+    }
+    .cta-phone svg { width: 18px; height: 18px; }
+    .cta-phone:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 10px 32px rgba(234,88,12,.45); }
+
+    .map-wrap {
+      border-radius: var(--radius-lg); overflow: hidden;
+      border: 1.5px solid var(--border); box-shadow: var(--shadow-md);
+    }
+    #map { height: 380px; }
+    .map-note {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; margin-top: 10px;
+      font-size: .8rem; color: var(--muted);
+    }
+    .map-note svg { width: 14px; height: 14px; color: var(--primary-mid); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,.4);
+      padding: 40px 24px;
+    }
+    .footer-inner {
+      max-width: 1140px; margin: 0 auto;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.1);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.65);
+    }
+    .footer-logo-icon svg { width: 18px; height: 18px; }
+    .footer-logo-name {
+      font-family: 'Lexend', sans-serif;
+      font-size: .9rem; font-weight: 700;
+      color: rgba(255,255,255,.8);
+    }
+    footer p { font-size: .8rem; }
+    footer span { color: rgba(255,255,255,.78); }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .fade-up {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .08s; }
+    .d2 { transition-delay: .16s; }
+    .d3 { transition-delay: .24s; }
+    .d4 { transition-delay: .32s; }
+    .d5 { transition-delay: .40s; }
+    .d6 { transition-delay: .48s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade-up { opacity: 1; transform: none; transition: none; }
+      .badge-dot::after { animation: none; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .services-grid { grid-template-columns: repeat(2,1fr); }
+      .reviews-grid  { grid-template-columns: repeat(2,1fr); }
+      .process-track { grid-template-columns: repeat(2,1fr); gap: 40px; }
+      .process-track::before { display: none; }
+    }
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-right  { display: none; }
+      #hero        { padding: 72px 0 90px; text-align: center; }
+      #hero p      { margin-left: auto; margin-right: auto; }
+      .hero-btns   { justify-content: center; }
+    }
+    @media (max-width: 768px) {
+      .stats-grid      { grid-template-columns: repeat(2,1fr); gap: 20px; }
+      .stat-item+.stat-item::before { display: none; }
+      .why-grid        { grid-template-columns: 1fr; }
+      .contact-grid    { grid-template-columns: 1fr; }
+      .nav-links, .nav-cta { display: none; }
+      .nav-burger      { display: flex; }
+      .footer-inner    { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 640px) {
+      section          { padding: 64px 0; }
+      .services-grid   { grid-template-columns: 1fr; }
+      .process-track   { grid-template-columns: 1fr; gap: 28px; }
+      .reviews-grid    { grid-template-columns: 1fr; }
+      .contact-card    { padding: 28px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SVG SPRITE -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="ic-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+  </symbol>
+  <symbol id="ic-pipe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2c0 5.5-7 6-7 11a7 7 0 0 0 14 0c0-5-7-5.5-7-11Z"/>
+  </symbol>
+  <symbol id="ic-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+    <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+    <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+  </symbol>
+  <symbol id="ic-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+  </symbol>
+  <symbol id="ic-thermo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+  </symbol>
+  <symbol id="ic-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7.5" cy="15.5" r="5.5"/>
+    <path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>
+  </symbol>
+  <symbol id="ic-award" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="6"/>
+    <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+  </symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </symbol>
+  <symbol id="ic-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/>
+    <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="ic-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <path d="m9 12 2 2 4-4"/>
+  </symbol>
+  <symbol id="ic-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 12 19.79 19.79 0 0 1 1 3.18 2 2 0 0 1 2.96 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+  </symbol>
+  <symbol id="ic-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="20" height="16" x="2" y="4" rx="2"/>
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+  </symbol>
+  <symbol id="ic-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+    <circle cx="12" cy="10" r="3"/>
+  </symbol>
+  <symbol id="ic-time" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 8 14"/>
+  </symbol>
+  <symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" x2="20" y1="6"  y2="6"/>
+    <line x1="4" x2="20" y1="12" y2="12"/>
+    <line x1="4" x2="20" y1="18" y2="18"/>
+  </symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+  </symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 6 9 17l-5-5"/>
+  </symbol>
+  <symbol id="ic-arrow-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+  </symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </symbol>
+  <symbol id="ic-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+    <line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/>
+    <line x1="3" x2="21" y1="10" y2="10"/>
+  </symbol>
+  <symbol id="ic-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+  </symbol>
+  <symbol id="ic-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </symbol>
+</svg>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg><use href="#ic-wrench"/></svg>
+      </div>
+      <div>
+        <div class="nav-logo-name">Сантехнік Микола</div>
+        <div class="nav-logo-sub">Хмельницький • 10 років досвіду</div>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#services">Послуги</a></li>
+      <li><a href="#process">Як я працюю</a></li>
+      <li><a href="#why">Про мене</a></li>
+      <li><a href="#reviews">Відгуки</a></li>
+      <li><a href="#contact">Контакти</a></li>
+    </ul>
+
+    <a href="tel:+380671234567" class="nav-cta">
+      <svg><use href="#ic-phone"/></svg>
+      Зателефонувати
+    </a>
+
+    <button class="nav-burger" id="navBurger" aria-label="Меню" aria-expanded="false">
+      <svg><use href="#ic-menu"/></svg>
+    </button>
+  </div>
+</nav>
+
+<nav class="nav-mobile" id="navMobile" aria-label="Мобільне меню">
+  <a href="#services"  class="mobile-link">Послуги</a>
+  <a href="#process"   class="mobile-link">Як я працюю</a>
+  <a href="#why"       class="mobile-link">Про мене</a>
+  <a href="#reviews"   class="mobile-link">Відгуки</a>
+  <a href="#contact"   class="mobile-link">Контакти</a>
+  <a href="tel:+380671234567" class="mobile-link nav-mobile-cta">
+    <svg><use href="#ic-phone"/></svg>
+    +38 (067) 123-45-67
+  </a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-orb-1" aria-hidden="true"></div>
+  <div class="hero-orb-2" aria-hidden="true"></div>
+  <div class="hero-pattern" aria-hidden="true">
+    <svg viewBox="0 0 1440 560" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <rect x="0"    y="110" width="260" height="10" rx="5" fill="white"/>
+      <rect x="300"  y="110" width="160" height="10" rx="5" fill="white"/>
+      <rect x="290"  y="110" width="10"  height="120" rx="5" fill="white"/>
+      <circle cx="295" cy="115" r="18" fill="none" stroke="white" stroke-width="10"/>
+      <rect x="750"  y="180" width="220" height="10" rx="5" fill="white"/>
+      <rect x="1020" y="80"  width="10"  height="210" rx="5" fill="white"/>
+      <circle cx="1025" cy="180" r="16" fill="none" stroke="white" stroke-width="10"/>
+      <rect x="1025" y="280" width="280" height="10" rx="5" fill="white"/>
+      <rect x="180"  y="360" width="10"  height="160" rx="5" fill="white"/>
+      <rect x="180"  y="360" width="140" height="10"  rx="5" fill="white"/>
+      <circle cx="185" cy="365" r="14" fill="none" stroke="white" stroke-width="8"/>
+      <rect x="560"  y="310" width="200" height="10" rx="5" fill="white"/>
+      <rect x="560"  y="240" width="10"  height="78" rx="5" fill="white"/>
+      <circle cx="565" cy="245" r="12" fill="none" stroke="white" stroke-width="8"/>
+    </svg>
+  </div>
+
+  <div class="container">
+    <div class="hero-inner">
+      <!-- Left: Text -->
+      <div class="hero-left">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Офіційно зареєстрований майстер
+        </div>
+        <h1>Сантехнік у Хмельницькому — <span class="h1-accent">Швидко. Якісно. Чесно.</span></h1>
+        <p>Усуваю будь-які проблеми з водопроводом, каналізацією та опаленням — від дрібного ремонту до повного монтажу під ключ.</p>
+        <div class="hero-btns">
+          <a href="tel:+380671234567" class="btn-orange">
+            <svg><use href="#ic-phone"/></svg>
+            Зателефонувати зараз
+          </a>
+          <a href="#services" class="btn-ghost">
+            Переглянути послуги
+            <svg><use href="#ic-arrow-down"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Trust cards -->
+      <div class="hero-right">
+        <div class="trust-grid">
+          <div class="trust-card">
+            <div class="trust-num">10<em>+</em></div>
+            <div class="trust-card-label">Років<br>досвіду</div>
+          </div>
+          <div class="trust-card">
+            <div class="trust-num">500<em>+</em></div>
+            <div class="trust-card-label">Виконаних<br>об'єктів</div>
+          </div>
+          <div class="trust-card">
+            <div class="trust-num">24<em>/7</em></div>
+            <div class="trust-card-label">Аварійний<br>виїзд</div>
+          </div>
+          <div class="trust-card">
+            <div class="trust-num">12<em>міс</em></div>
+            <div class="trust-card-label">Гарантія<br>на роботи</div>
+          </div>
+        </div>
+        <div class="trust-badges">
+          <div class="trust-badge">
+            <svg><use href="#ic-check"/></svg>
+            Ліцензія
+          </div>
+          <div class="trust-badge">
+            <svg><use href="#ic-check"/></svg>
+            Договір
+          </div>
+          <div class="trust-badge">
+            <svg><use href="#ic-check"/></svg>
+            Гарантія
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Wave -->
+<div class="wave">
+  <svg viewBox="0 0 1440 72" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,36 C200,72 400,0 600,36 C800,72 1000,0 1200,36 C1320,54 1380,48 1440,36 L1440,72 L0,72 Z" fill="#1D4ED8"/>
+  </svg>
+</div>
+
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stats-grid">
+    <div class="stat-item fade-up">
+      <div class="stat-icon"><svg><use href="#ic-users"/></svg></div>
+      <span class="stat-num" data-target="500"><span class="stat-sfx">+</span></span>
+      <span class="stat-label">Задоволених клієнтів</span>
+    </div>
+    <div class="stat-item fade-up d1">
+      <div class="stat-icon"><svg><use href="#ic-award"/></svg></div>
+      <span class="stat-num" data-target="10"><span class="stat-sfx"> р.</span></span>
+      <span class="stat-label">Років на ринку</span>
+    </div>
+    <div class="stat-item fade-up d2">
+      <div class="stat-icon"><svg><use href="#ic-clock"/></svg></div>
+      <span class="stat-num" data-target="2"><span class="stat-sfx"> год</span></span>
+      <span class="stat-label">Час виїзду на аварію</span>
+    </div>
+    <div class="stat-item fade-up d3">
+      <div class="stat-icon"><svg><use href="#ic-shield"/></svg></div>
+      <span class="stat-num" data-target="12"><span class="stat-sfx"> міс</span></span>
+      <span class="stat-label">Гарантія на роботи</span>
+    </div>
+  </div>
+</div>
+
+<!-- Wave reverse -->
+<div class="wave" style="transform:scaleY(-1);margin-bottom:-1px">
+  <svg viewBox="0 0 1440 72" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path d="M0,36 C200,72 400,0 600,36 C800,72 1000,0 1200,36 C1320,54 1380,48 1440,36 L1440,72 L0,72 Z" fill="#1D4ED8"/>
+  </svg>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="container">
+    <div class="section-head fade-up">
+      <div class="section-label"><span class="section-label-line"></span>Послуги</div>
+      <h2 class="section-title">Що я роблю</h2>
+      <p class="section-sub">Повний спектр сантехнічних послуг у Хмельницькому та районі</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card fade-up d1">
+        <div class="svc-icon"><svg><use href="#ic-pipe"/></svg></div>
+        <h3>Монтаж водопроводу</h3>
+        <p>Прокладка труб, підключення кухні, ванної, туалету з нуля або заміна старих комунікацій.</p>
+      </div>
+      <div class="service-card fade-up d2">
+        <div class="svc-icon"><svg><use href="#ic-wrench"/></svg></div>
+        <h3>Усунення аварій</h3>
+        <p>Течія, прорив труби, засмічення — виїжджаю протягом 1–2 годин. Цілодобово.</p>
+      </div>
+      <div class="service-card fade-up d3">
+        <div class="svc-icon"><svg><use href="#ic-layers"/></svg></div>
+        <h3>Встановлення сантехніки</h3>
+        <p>Унітаз, раковина, ванна, душова кабіна, змішувач — будь-яка марка та складність.</p>
+      </div>
+      <div class="service-card fade-up d1">
+        <div class="svc-icon"><svg><use href="#ic-flame"/></svg></div>
+        <h3>Опалення</h3>
+        <p>Монтаж і підключення радіаторів, труб опалення, заміна котла, промивка системи.</p>
+      </div>
+      <div class="service-card fade-up d2">
+        <div class="svc-icon"><svg><use href="#ic-thermo"/></svg></div>
+        <h3>Водонагрівачі</h3>
+        <p>Встановлення та підключення бойлерів і проточних водонагрівачів будь-якого типу.</p>
+      </div>
+      <div class="service-card fade-up d3">
+        <div class="svc-icon"><svg><use href="#ic-key"/></svg></div>
+        <h3>Під ключ</h3>
+        <p>Повний монтаж сантехніки в новобудові або при ремонті: від проєкту до здачі.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="container">
+    <div class="section-head fade-up" style="text-align:center">
+      <div class="section-label" style="justify-content:center"><span class="section-label-line"></span>Як я працюю<span class="section-label-line"></span></div>
+      <h2 class="section-title" style="text-align:center">4 простих кроки</h2>
+      <p class="section-sub" style="margin:0 auto">Від першого дзвінка до гарантії — все прозоро і зрозуміло</p>
+    </div>
+    <div class="process-track">
+      <div class="process-step fade-up d1">
+        <div class="step-circle">1</div>
+        <h4>Дзвінок</h4>
+        <p>Описуєте проблему — я уточнюю деталі та приблизну вартість ще до виїзду.</p>
+      </div>
+      <div class="process-step fade-up d2">
+        <div class="step-circle">2</div>
+        <h4>Огляд</h4>
+        <p>Приїжджаю, оглядаю ситуацію на місці та називаю фінальну ціну.</p>
+      </div>
+      <div class="process-step fade-up d3">
+        <div class="step-circle">3</div>
+        <h4>Ремонт</h4>
+        <p>Виконую роботу акуратно і в строк. Прибираю за собою після завершення.</p>
+      </div>
+      <div class="process-step fade-up d4">
+        <div class="step-circle">4</div>
+        <h4>Гарантія</h4>
+        <p>Видаю документ із гарантією 12 місяців. Якщо щось не так — приїду безкоштовно.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="container">
+    <div class="section-head fade-up">
+      <div class="section-label"><span class="section-label-line"></span>Чому обирають мене</div>
+      <h2 class="section-title">Прозоро. Без зайвих слів.</h2>
+      <p class="section-sub">Жодних прихованих доплат і порожніх обіцянок</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card fade-up d1">
+        <div class="why-icon"><svg><use href="#ic-award"/></svg></div>
+        <div>
+          <h4>10 років досвіду</h4>
+          <p>Понад 500 виконаних об'єктів у Хмельницькому та області. Знаю всі типові проблеми і вирішую їх швидко.</p>
+        </div>
+      </div>
+      <div class="why-card fade-up d2">
+        <div class="why-icon"><svg><use href="#ic-clock"/></svg></div>
+        <div>
+          <h4>Виїзд за 1–2 год</h4>
+          <p>Аварійний виїзд цілодобово, навіть у вихідні та свята. Ваша проблема не чекатиме до понеділка.</p>
+        </div>
+      </div>
+      <div class="why-card fade-up d3">
+        <div class="why-icon"><svg><use href="#ic-tag"/></svg></div>
+        <div>
+          <h4>Фіксована ціна</h4>
+          <p>Називаю вартість до початку роботи — ніяких сюрпризів у рахунку. Якщо обсяг зміниться — попереджу.</p>
+        </div>
+      </div>
+      <div class="why-card fade-up d4">
+        <div class="why-icon"><svg><use href="#ic-shield"/></svg></div>
+        <div>
+          <h4>Гарантія 12 міс.</h4>
+          <p>Гарантія на всі роботи 12 місяців із документальним підтвердженням. Якщо щось піде не так — приїду безкоштовно.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="container">
+    <div class="section-head fade-up" style="text-align:center">
+      <div class="section-label" style="justify-content:center"><span class="section-label-line"></span>Відгуки<span class="section-label-line"></span></div>
+      <h2 class="section-title" style="text-align:center">Що кажуть клієнти</h2>
+      <p class="section-sub" style="margin:0 auto">Реальний досвід людей із Хмельницького</p>
+    </div>
+    <div class="reviews-grid">
+      <div class="review-card fade-up d1">
+        <div class="review-stars">
+          <svg><use href="#ic-star"/></svg><svg><use href="#ic-star"/></svg>
+          <svg><use href="#ic-star"/></svg><svg><use href="#ic-star"/></svg>
+          <svg><use href="#ic-star"/></svg>
+        </div>
+        <p class="review-text">«Вночі прорвало трубу під раковиною. Микола приїхав за годину і усунув аварію ще до ранку. Чисто, швидко, ціна відповідала тому, що сказав по телефону. Рекомендую!»</p>
+        <div class="review-author">
+          <div class="review-avatar">ОІ</div>
+          <div>
+            <div class="review-name">Іванченко Олег</div>
+            <div class="review-date">Квітень 2025</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card fade-up d2">
+        <div class="review-stars">
+          <svg><use href="#ic-star"/></svg><svg><use href="#ic-star"/></svg>
+          <svg><use href="#ic-star"/></svg><svg><use href="#ic-star"/></svg>
+          <svg><use href="#ic-star"/></svg>
+        </div>
+        <p class="review-text">«Замовляли встановлення нової ванни та душової кабіни. Все зробив акуратно, не залишив сміття. Дав гарантійний талон. Приємно мати справу з таким майстром.»</p>
+        <div class="review-author">
+          <div class="review-avatar">МТ</div>
+          <div>
+            <div class="review-name">Марченко Тетяна</div>
+            <div class="review-date">Лютий 2025</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card fade-up d3">
+        <div class="review-stars">
+          <svg><use href="#ic-star"/></svg><svg><use href="#ic-star"/></svg>
+          <svg><use href="#ic-star"/></svg><svg><use href="#ic-star"/></svg>
+          <svg><use href="#ic-star"/></svg>
+        </div>
+        <p class="review-text">«Монтував опалення в приватному будинку. Запропонував оптимальне рішення, яке обійшлось дешевше ніж інші майстри. Система вже другу зиму без жодних нарікань.»</p>
+        <div class="review-author">
+          <div class="review-avatar">ПВ</div>
+          <div>
+            <div class="review-name">Поліщук Василь</div>
+            <div class="review-date">Листопад 2025</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="section-head fade-up">
+      <div class="section-label"><span class="section-label-line"></span>Контакти</div>
+      <h2 class="section-title">Зв'язатись зі мною</h2>
+      <p class="section-sub">Залишилось питання? Пишіть або телефонуйте — відповім швидко</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-card fade-up d1">
+        <h3>Контактна інформація</h3>
+
+        <div class="contact-row">
+          <div class="ci"><svg><use href="#ic-phone"/></svg></div>
+          <div>
+            <div class="contact-row-lbl">Телефон (Viber / WhatsApp)</div>
+            <a href="tel:+380671234567">+38 (067) 123-45-67</a>
+          </div>
+        </div>
+
+        <div class="contact-row">
+          <div class="ci"><svg><use href="#ic-mail"/></svg></div>
+          <div>
+            <div class="contact-row-lbl">Електронна пошта</div>
+            <a href="mailto:mykola.santex@gmail.com">mykola.santex@gmail.com</a>
+          </div>
+        </div>
+
+        <div class="contact-row">
+          <div class="ci"><svg><use href="#ic-pin"/></svg></div>
+          <div>
+            <div class="contact-row-lbl">Місто обслуговування</div>
+            <strong>Хмельницький та Хмельницька область</strong>
+          </div>
+        </div>
+
+        <div class="contact-row">
+          <div class="ci"><svg><use href="#ic-time"/></svg></div>
+          <div>
+            <div class="contact-row-lbl">Графік роботи</div>
+            <strong>Пн–Нд, 08:00–21:00 (аварії — 24/7)</strong>
+          </div>
+        </div>
+
+        <a href="tel:+380671234567" class="cta-phone">
+          <svg><use href="#ic-phone"/></svg>
+          +38 (067) 123-45-67
+        </a>
+      </div>
+
+      <div class="fade-up d2">
+        <div class="map-wrap">
+          <div id="map"></div>
+        </div>
+        <p class="map-note">
+          <svg><use href="#ic-pin"/></svg>
+          Орієнтовна зона обслуговування — Хмельницький та район
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <div class="footer-logo-icon">
+        <svg><use href="#ic-wrench"/></svg>
+      </div>
+      <div class="footer-logo-name">Сантехнік Микола Коваленко</div>
+    </div>
+    <div>
+      <p>© 2025 <span>Сантехнік Микола Коваленко</span> — Хмельницький.</p>
+      <p style="margin-top:4px">Дані є вигаданими та наведені виключно для демонстрації.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ── Mobile nav ──
+  const burger    = document.getElementById('navBurger');
+  const mobileNav = document.getElementById('navMobile');
+  const burgerUse = burger.querySelector('use');
+  let menuOpen = false;
+
+  burger.addEventListener('click', () => {
+    menuOpen = !menuOpen;
+    mobileNav.classList.toggle('open', menuOpen);
+    burgerUse.setAttribute('href', menuOpen ? '#ic-x' : '#ic-menu');
+    burger.setAttribute('aria-expanded', menuOpen);
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+  });
+
+  document.querySelectorAll('.mobile-link').forEach(l => {
+    l.addEventListener('click', () => {
+      menuOpen = false;
+      mobileNav.classList.remove('open');
+      burgerUse.setAttribute('href', '#ic-menu');
+      burger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    });
+  });
+
+  // ── Leaflet map ──
+  const lat = 49.4287833112704;
+  const lng = 26.97979824580646;
+
+  const map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  const markerIcon = L.divIcon({
+    html: `<div style="background:linear-gradient(135deg,#1E3A8A,#1D4ED8);color:#fff;border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(30,58,138,.45)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>`,
+    iconSize: [46, 46],
+    iconAnchor: [23, 46],
+    className: ''
+  });
+
+  L.marker([lat, lng], { icon: markerIcon })
+    .addTo(map)
+    .bindPopup('<b>Сантехнік Микола</b><br>Хмельницький<br><a href="tel:+380671234567">+38 (067) 123-45-67</a>')
+    .openPopup();
+
+  // ── Scroll fade-up ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // ── Stat counters ──
+  const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el     = e.target;
+      const target = parseInt(el.dataset.target, 10);
+      const suffix = el.querySelector('.stat-sfx');
+      const suffixText = suffix ? suffix.outerHTML : '';
+      const duration = 1400;
+      const step     = 16;
+      const inc      = target / (duration / step);
+      let current    = 0;
+
+      const tick = () => {
+        current = Math.min(current + inc, target);
+        el.innerHTML = Math.round(current) + suffixText;
+        if (current < target) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      counterObserver.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => counterObserver.observe(el));
+</script>
+</body>
+</html>
